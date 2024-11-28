@@ -4,23 +4,25 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import User from '../user/user.entity';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { Role } from 'src/common/roles/roles.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private roleRepository: Repository<Role>,
     private jwtService: JwtService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto): Promise<{ token: string }> {
-    const { username, password } = signUpDto;
+  async signUp(signUpDto: SignUpDto): Promise<{ user: User }> {
+    const { username, password, roles } = signUpDto;
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -32,16 +34,19 @@ export class AuthService {
       throw new BadRequestException('Username already exists');
     }
 
+    const role = await this.roleRepository.find({
+      where: { role_name: In(roles) },
+    });
+
     const user = await this.usersRepository.create({
       user_name: username,
       password: hashedPassword,
+      roles: role,
     });
 
     await this.usersRepository.save(user);
 
-    const token = this.jwtService.sign({ id: user.id });
-
-    return { token };
+    return { user };
   }
 
   async login(loginDto: LoginDto): Promise<{ token: string }> {
