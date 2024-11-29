@@ -4,49 +4,49 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
-import User from '../user/user.entity';
+import { Repository, In } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { SignUpDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
-import { Role } from 'src/common/roles/roles.entity';
+import User from '../user/user.entity';
+import { Role } from '../common/roles/roles.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User)
-    private usersRepository: Repository<User>,
-    private roleRepository: Repository<Role>,
-    private jwtService: JwtService,
+    private readonly usersRepository: Repository<User>,
+    @InjectRepository(Role)
+    private readonly roleRepository: Repository<Role>,
+    private readonly jwtService: JwtService,
   ) {}
 
-  async signUp(signUpDto: SignUpDto): Promise<{ user: User }> {
+  async signUp(signUpDto: SignUpDto): Promise<{ user: Partial<User> }> {
     const { username, password, roles } = signUpDto;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const isUserExists = await this.usersRepository.findOne({
-      where: { user_name: username },
-    });
-
-    if (isUserExists) {
+    if (
+      await this.usersRepository.findOne({ where: { user_name: username } })
+    ) {
       throw new BadRequestException('Username already exists');
     }
 
-    const role = await this.roleRepository.find({
+    const roleEntities = await this.roleRepository.find({
       where: { role_name: In(roles) },
     });
 
-    const user = await this.usersRepository.create({
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = this.usersRepository.create({
       user_name: username,
       password: hashedPassword,
-      roles: role,
+      roles: roleEntities,
     });
 
-    await this.usersRepository.save(user);
+    const savedUser = await this.usersRepository.save(newUser);
 
-    return { user };
+    const { password: _, ...userWithoutPassword } = savedUser;
+    return { user: userWithoutPassword };
   }
 
   async login(loginDto: LoginDto): Promise<{ token: string }> {
@@ -55,19 +55,11 @@ export class AuthService {
     const user = await this.usersRepository.findOne({
       where: { user_name: username },
     });
-
-    if (!user) {
-      throw new UnauthorizedException('Username not exists');
-    }
-
-    const isPasswordMatched = await bcrypt.compare(password, user.password);
-
-    if (!isPasswordMatched) {
-      throw new UnauthorizedException('Password not match');
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
     }
 
     const token = this.jwtService.sign({ id: user.id });
-
     return { token };
   }
 }

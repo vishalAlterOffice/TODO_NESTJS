@@ -1,34 +1,43 @@
 import {
-  Body,
   Controller,
   Get,
   Param,
-  Post,
-  Delete,
   UseGuards,
+  Request,
+  NotFoundException,
 } from '@nestjs/common';
-import User from './user.entity';
+import { AuthGuard } from '@nestjs/passport';
+import { Roles } from '../common/roles/roles.decorator';
+import { RolesGuard } from '../common/guards/role.guard';
 import { UsersService } from './users.service';
+import User from './user.entity';
 
 @Controller('users')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get('me')
+  @Roles('ADMIN', 'USER')
+  async getCurrentUser(@Request() req: any): Promise<Partial<User>> {
+    if (!req.user) {
+      throw new NotFoundException('User not found');
+    }
+    const { password, ...userWithoutPassword } = req.user;
+    return userWithoutPassword;
+  }
+
   @Get()
-  async getAllUsers(): Promise<User[]> {
+  @Roles('ADMIN')
+  async getAllUsers() {
     const users = await this.usersService.getAllUsers();
-    return users;
+    return users.map(({ password, ...user }) => user);
   }
 
   @Get(':id')
-  async getUserById(@Param('id') id: string): Promise<User> {
+  async getUserById(@Param('id') id: string): Promise<Partial<User>> {
     const user = await this.usersService.getUserById(Number(id));
-    return user;
-  }
-
-  @Delete(':id')
-  async deleteById(@Param('id') id: string): Promise<User> {
-    const user = this.usersService.deleteById(Number(id));
-    return user;
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }

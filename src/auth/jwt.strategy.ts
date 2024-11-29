@@ -24,7 +24,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       where: {
         id: id,
       },
+      relations: ['roles'],
     });
+
+    // console.log('user jwt', user);
 
     if (!user) {
       throw new UnauthorizedException('Login first to access this endpoint.');

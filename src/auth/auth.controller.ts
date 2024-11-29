@@ -1,26 +1,25 @@
-import {
-  Body,
-  Controller,
-  Get,
-  Post,
-  UsePipes,
-  ValidationPipe,
-} from '@nestjs/common';
+import { BadRequestException, Body, Controller, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { SignUpDto } from './dto/signup.dto';
 import User from 'src/user/user.entity';
+import { Public } from './auth.decorator';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('/register')
-  signUp(@Body() signUpDto: SignUpDto): Promise<{ user: User }> {
+  @Public()
+  signUp(@Body() signUpDto: SignUpDto): Promise<{ user: Partial<User> }> {
+    if (!signUpDto.username || !signUpDto.password || !signUpDto.roles) {
+      throw new BadRequestException('All fields are required');
+    }
     return this.authService.signUp(signUpDto);
   }
 
   @Post('/login')
+  @Public()
   login(@Body() loginDto: LoginDto): Promise<{ token: string }> {
     return this.authService.login(loginDto);
   }

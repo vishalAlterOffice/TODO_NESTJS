@@ -1,9 +1,11 @@
 import { Role } from 'src/common/roles/roles.entity';
+import { Todo } from 'src/tasks/task.entity';
 import {
   Column,
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
@@ -25,6 +27,9 @@ class User {
     inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' },
   })
   roles: Role[];
+
+  @OneToMany(() => Todo, (todo) => todo.id)
+  todos: Todo[];
 }
 
 export default User;
