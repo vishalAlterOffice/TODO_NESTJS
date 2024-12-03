@@ -34,4 +34,8 @@ export class UsersService {
     const user = await this.getUserById(id);
     await this.userRepository.destroy(user.id);
   }
+
+  async findByUserName(username: string) {
+    return await this.userRepository.findByUsername(username);
+  }
 }

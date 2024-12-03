@@ -11,7 +11,7 @@ import { Role } from 'src/shared/entities/roles.entity';
 import { SignUpDto } from '../dto/signup.dto';
 import { LoginDto } from '../dto/login.dto';
 import User from 'src/module/user/entities/user.entity';
-import UserRepository from 'src/module/user/repositories/user.repository';
+import { UsersService } from 'src/module/user/service/users.service';
 
 @Injectable()
 export class AuthService {
@@ -19,14 +19,14 @@ export class AuthService {
     @InjectRepository(Role)
     private readonly roleRepository: Repository<Role>,
     private readonly jwtService: JwtService,
-    private readonly userRepo: UserRepository,
+    private readonly userService: UsersService,
   ) {}
 
   async signUp(signUpDto: SignUpDto): Promise<{ user: Partial<User> }> {
     const { username, password, roles } = signUpDto;
 
     // Check if the username already exists
-    if (await this.userRepo.findByUsername(username)) {
+    if (await this.userService.findByUserName(username)) {
       throw new BadRequestException('Username already exists');
     }
 
@@ -39,7 +39,7 @@ export class AuthService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create a new user
-    const newUser = await this.userRepo.createUser({
+    const newUser = await this.userService.createUser({
       user_name: username,
       password: hashedPassword,
       roles: roleEntities,
@@ -54,7 +54,7 @@ export class AuthService {
     const { username, password } = loginDto;
 
     // Find the user by username
-    const user = await this.userRepo.findByUsername(username);
+    const user = await this.userService.findByUserName(username);
 
     // Validate credentials
     if (!user || !(await bcrypt.compare(password, user.password))) {

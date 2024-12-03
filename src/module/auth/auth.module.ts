@@ -8,6 +8,7 @@ import { Role } from 'src/shared/entities/roles.entity';
 import { AuthService } from './service/auth.service';
 import User from '../user/entities/user.entity';
 import { JwtStrategy } from './strategy/jwt.strategy';
+import { UsersService } from '../user/service/users.service';
 import UserRepository from '../user/repositories/user.repository';
 
 @Module({
@@ -28,7 +29,7 @@ import UserRepository from '../user/repositories/user.repository';
     TypeOrmModule.forFeature([User, Role]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy, UserRepository],
+  providers: [AuthService, JwtStrategy, UsersService, UserRepository],
   exports: [JwtStrategy, PassportModule, AuthService],
 })
 export class AuthModule {}
