@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import * as Joi from '@hapi/joi';
-import { DatabaseModule } from './database/database.module';
-import { UsersModule } from './user/user.module';
-import { AuthModule } from './auth/auth.module';
-import { SeedsModule } from './seed/seed.module';
-import { TodoModule } from './tasks/task.module';
+import { DatabaseModule } from './shared/database/database.module';
+import { AuthModule } from './module/auth/auth.module';
+import { SeedsModule } from './shared/seed/seed.module';
+import { TodoModule } from './module/tasks/task.module';
+import { UsersModule } from './module/user/user.module';
 
 @Module({
   imports: [
