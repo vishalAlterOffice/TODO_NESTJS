@@ -17,8 +17,8 @@ export class TodoService {
 
   async findAll(user: User): Promise<Todo[]> {
     return this.isAdmin(user)
-      ? this.todoRepository.getAll() // `getAll` from CrudRepository
-      : this.todoRepository.findManyByCriteria({ user }); // Use the new method
+      ? this.todoRepository.getAll()
+      : this.todoRepository.findManyByCriteria({ user });
   }
 
   async updateTodo(id: number, data: Partial<Todo>, user: User): Promise<Todo> {
@@ -26,7 +26,7 @@ export class TodoService {
 
     this.ensureCanModify(user, existingTodo);
 
-    return this.todoRepository.update(id, data); // `update` from CrudRepository
+    return this.todoRepository.update(id, data);
   }
 
   async deleteTodo(id: number, user: User): Promise<void> {
@@ -34,7 +34,7 @@ export class TodoService {
 
     this.ensureCanModify(user, todo);
 
-    await this.todoRepository.destroy(id); // `destroy` from CrudRepository
+    await this.todoRepository.destroy(id);
   }
 
   private async getTodoByIdWithUser(id: number): Promise<Todo> {

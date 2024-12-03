@@ -1,5 +1,5 @@
 import { Todo } from 'src/module/tasks/entities/task.entity';
-import { Role } from 'src/shared/roles/roles.entity';
+import { Role } from 'src/shared/entities/roles.entity';
 import {
   Column,
   Entity,

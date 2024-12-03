@@ -11,9 +11,9 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateTodoDto } from './dto/todo.dto';
-import { Roles } from 'src/shared/roles/roles.decorator';
 import { RolesGuard } from 'src/shared/guards/role.guard';
 import { TodoService } from './service/task.service';
+import { Roles } from 'src/shared/decorators/roles.decorator';
 
 @Controller('todos')
 @UseGuards(AuthGuard('jwt'), RolesGuard)

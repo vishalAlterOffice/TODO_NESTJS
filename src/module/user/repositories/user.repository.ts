@@ -12,6 +12,17 @@ class UserRepository extends CrudRepository<User> {
   ) {
     super(userRepository);
   }
+
+  // Custom method to find a user by username
+  async findByUsername(username: string): Promise<User | null> {
+    return this.userRepository.findOne({ where: { user_name: username } });
+  }
+
+  // Custom method to create a user
+  async createUser(data: Partial<User>): Promise<User> {
+    const user = this.userRepository.create(data);
+    return this.userRepository.save(user);
+  }
 }
 
 export default UserRepository;
